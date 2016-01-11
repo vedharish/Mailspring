@@ -1,6 +1,23 @@
-# N1 Documentation
+# Table of Contents
 
-For the full documentation (which includes these guides), go to:
-https://nylas.com/N1/docs/
-
-To see annotated package examples, go to: https://nylas.com/N1/examples/
+* [Getting Started](/docs/getting-started/README.md)
+  * [Building your first plugin - Part 1](https://nylas.com/N1/getting-started/)
+  * [Building your first plugin - Part 2](/docs/getting-started/part2.md)
+* [How N1 Works](/docs/how-n1-works/README.md)
+  * [The mail client](/docs/how-n1-works/the-mail-client.md)
+  * [Architecture](/docs/how-n1-works/architecture.md)
+  * [Rendering the interface](/docs/how-n1-works/rendering-the-interface.md)
+  * [Handling user actions](/docs/how-n1-works/handling-user-actions.md)
+  * [Storing and accessing data](/docs/how-n1-works/storing-and-accessing-data.md)
+  * [Making API requests](/docs/how-n1-works/making-api-requests.md)
+* [Building N1 Plugins](/docs/building-n1-plugins/README.md)
+  * [Plugin Architecture](/docs/building-n1-plugins/plugin-architecture.md)
+  * [Extending the interface](/docs/building-n1-plugins/extending-the-interface.md)
+  * [Extending user actions](/docs/building-n1-plugins/extending-user-actions.md)
+  * [Managing data](/docs/building-n1-plugins/managing-data.md)
+  * [Third party APIs](/docs/building-n1-plugins/third-party-apis.md)
+  * [Testing plugins](/docs/building-n1-plugins/testing-plugins.md)
+  * [Debugging plugins](/docs/building-n1-plugins/debugging-plugins.md)
+* [Contributing to N1 Core](/CONTRIBUTING.md)
+* [FAQ](/docs/FAQ.md)
+* [API Reference](/docs/api-reference/README.md)

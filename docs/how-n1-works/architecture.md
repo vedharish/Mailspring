@@ -1,9 +1,3 @@
----
-Title:   Application Architecture
-Section: Guides
-Order:   3
----
-
 N1 uses [Reflux](https://github.com/spoike/refluxjs), a slim implementation of Facebook's [Flux Application Architecture](https://facebook.github.io/flux/) to coordinate the movement of data through the application. Flux is extremely well suited for applications that support third-party extension because it emphasizes loose coupling and well defined interfaces between components. It enforces:
 
 - **Uni-directional data flow**

@@ -30,3 +30,6 @@ yoursway-create-dmg
 
 .idea/
 spec-saved-state.json
+
+_book/
+docs/_book/

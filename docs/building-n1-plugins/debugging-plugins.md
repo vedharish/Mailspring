@@ -1,10 +1,8 @@
----
-Title:   Debugging N1
-Section: Guides
-Order:   4
----
 
-### Chromium DevTools
+# Debugging Plugins
+
+
+## Chromium DevTools
 
 N1 is built on top of Electron, which runs the latest version of Chromium (at the time of writing, Chromium 43). You can access the standard [Chrome DevTools](https://developer.chrome.com/devtools) using the `Command-Option-I` (`Ctrl-Shift-I` on Windows/Linux) keyboard shortcut, including the Debugger, Profiler, and Console. You can find extensive information about the Chromium DevTools on [developer.chrome.com](https://developer.chrome.com/devtools).
 
@@ -19,7 +17,7 @@ Here are a few hidden tricks for getting the most out of the Chromium DevTools:
 - While viewing the DOM in the `Elements` panel, typing `$0` on the console refers to the currently selected DOM node.
 
 
-### Nylas Developer Panel
+## Nylas Developer Panel
 
 If you choose `Developer > Show Activity Window` from the menu, you can see detailed logs of the requests, tasks, and streaming updates processed by N1.
 
@@ -33,7 +31,7 @@ The Developer Panel provides three views which you can click to activate:
 
 The Developer Panel also allows you to toggle "View Component Regions". Turning on component regions adds a red border to areas of the app that render dynamically injected components, and shows the props passed to React components in each one. See {react} for more information.
 
-### The Development Workflow
+## The Development Workflow
 
 If you're debugging a package, you'll be modifying your code and re-running N1 over and over again. There are a few things you can do to make this development workflow less time consuming:
 
@@ -44,3 +42,4 @@ If you're debugging a package, you'll be modifying your code and re-running N1 o
  > Note: A bug in Electron causes the Chromium DevTools to become detached if you refresh the app often. If you find that Chromium is not stopping at your breakpoints, quit N1 and re-launch it.
 
 In the future, we'll support much richer hot-reloading of plugin components and code. Stay tuned!
+

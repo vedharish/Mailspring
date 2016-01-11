@@ -1,8 +1,7 @@
----
-Title:   Accessing the Database
-Section: Guides
-Order:   5
----
+
+# Storing and accessing data
+
+## The Database
 
 N1 is built on top of a custom database layer modeled after ActiveRecord. For many parts of the application, the database is the source of truth. Data is retrieved from the API, written to the database, and changes to the database trigger Stores and components to refresh their contents. The illustration below shows this flow of data:
 
@@ -10,7 +9,7 @@ N1 is built on top of a custom database layer modeled after ActiveRecord. For ma
 
 The Database connection is managed by the {DatabaseStore}, a singleton object that exists in every window. All Database requests are asynchronous. Queries are forwarded to the application's `Browser` process via IPC and run in SQLite.
 
-## Declaring Models
+### Declaring Models
 
 In N1, Models are thin wrappers around data with a particular schema. Each {Model} class declares a set of attributes that define the object's data. For example:
 
@@ -58,7 +57,7 @@ Thread.attributes.lastMessageTimestamp.descending()
 // order by last_message_timestamp DESC
 ```
 
-## Retrieving Models
+### Retrieving Models
 
 You can make queries for models stored in SQLite using a {Promise}-based ActiveRecord-style syntax. There is no way to make raw SQL queries against the local data store.
 
@@ -77,22 +76,22 @@ DatabaseStore.count(Thread).where([Thread.attributes.lastMessageTimestamp.greate
 
 ```
 
-## Retrieving Pages of Models
+### Retrieving Pages of Models
 
 If you need to paginate through a view of data, you should use a `DatabaseView`. Database views can be configured with a sort order and a set of where clauses. After the view is configured, it maintains a cache of models in memory in a highly efficient manner and makes it easy to implement pagination. `DatabaseView` also performs deep inspection of its cache when models are changed and can avoid costly SQL queries.
 
 
-## Saving and Updating Models
+### Saving and Updating Models
 
 The {DatabaseStore} exposes two methods for creating and updating models: `persistModel` and `persistModels`. When you call `persistModel`, queries are automatically executed to update the object in the cache and the {DatabaseStore} triggers, broadcasting an update to the rest of the application so that views dependent on these kind of models can refresh.
 
 When possible, you should accumulate the objects you want to save and call `persistModels`. The {DatabaseStore} will generate batch insert statements, and a single notification will be broadcast throughout the application. Since saving objects can result in objects being re-fetched by many stores and components, you should be mindful of database insertions.
 
-## Saving Drafts
+### Saving Drafts
 
 Drafts in N1 presented us with a unique challenge. The same draft may be edited rapidly by unrelated parts of the application, causing race scenarios. (For example, when the user is typing and attachments finish uploading at the same time.) This problem could be solved by object locking, but we chose to marshall draft changes through a central DraftStore that debounces database queries and adds other helpful features. See the {DraftStore} documentation for more information.
 
-## Removing Models
+### Removing Models
 
 The {DatabaseStore} exposes a single method, `unpersistModel`, that allows you to purge an object from the cache. You cannot remove a model by ID alone - you must load it first.
 
@@ -160,7 +159,7 @@ When a model is persisted or unpersisted from the database, your listener method
 ```
 
 
-##  But why can't I...?
+###  But why can't I...?
 
 N1 exposes a minimal Database API that exposes high-level methods for saving and retrieving objects. The API was designed with several goals in mind, which will help us create a healthy ecosystem of third-party packages:
 

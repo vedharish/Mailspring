@@ -1,0 +1,21 @@
+{
+  "gitbook": "2.4.3",
+  "title": "N1 Readme",
+  "structure": {
+    "summary": "docs/README.md"
+  },
+  "styles": {
+    "website": "docs/styles/website.css"
+  },
+  "plugins": ["edit-link", "prism", "-highlight", "github"],
+  "pluginsConfig": {
+    "edit-link": {
+      "base": "https://github.com/nylas/n1/tree/master",
+      "label": "Edit This Page"
+    },
+    "github": {
+      "url": "https://github.com/nylas/n1/"
+    }
+  }
+}
+

@@ -1,8 +1,7 @@
----
-Title:   Extending the Composer
-Section: Guides
-Order:   6
----
+
+# Extending the Interface
+
+## Extending the Composer
 
 The composer lies at the heart of N1, and many improvements to the mail experience require deep integration with the composer. To enable these sort of plugins, the {DraftStore} exposes an extension API.
 

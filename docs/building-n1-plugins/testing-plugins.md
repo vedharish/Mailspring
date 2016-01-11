@@ -1,9 +1,5 @@
----
-Title:   Writing Specs
-TitleHidden: True
-Section: Guides
-Order:   7
----
+
+# Testing Plugins
 
 Nylas uses [Jasmine](http://jasmine.github.io/1.3/introduction.html) as its spec framework. As a package developer, you can write specs using Jasmine 1.3 and get some quick wins. Jasmine specs can be run in N1 directly from the Developer menu, and the test environment provides you with helpful stubs. You can also require your own test framework, or use Jasmine for integration tests and your own framework for your existing business logic.
 
