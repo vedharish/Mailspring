@@ -44,7 +44,7 @@ class NylasWindow
 
     toolbar ?= true
     if process.platform is 'darwin'
-      frame = false
+      frame = true
     else
       frame = toolbar
 
@@ -59,6 +59,7 @@ class NylasWindow
       width: width
       height: height
       resizable: resizable ? true
+      titleBarStyle: "hidden-inset"
       webPreferences:
         directWrite: true
 

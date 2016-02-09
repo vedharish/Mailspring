@@ -114,8 +114,8 @@ class ToolbarMenuControl extends React.Component
     applicationMenu = require('remote').getGlobal('application').applicationMenu
     applicationMenu.menu.popup(NylasEnv.getCurrentWindow())
 
-ComponentRegistry.register ToolbarWindowControls,
-  location: WorkspaceStore.Sheet.Global.Toolbar.Left
+#ComponentRegistry.register ToolbarWindowControls,
+#  location: WorkspaceStore.Sheet.Global.Toolbar.Left
 
 ComponentRegistry.register ToolbarMenuControl,
   location: WorkspaceStore.Sheet.Global.Toolbar.Right
