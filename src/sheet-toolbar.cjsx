@@ -76,30 +76,13 @@ class ToolbarWindowControls extends React.Component
     @state = {alt: false}
 
   componentDidMount: =>
-    if process.platform is 'darwin'
-      window.addEventListener('keydown', @_onAlt)
-      window.addEventListener('keyup', @_onAlt)
 
   componentWillUnmount: =>
-    if process.platform is 'darwin'
-      window.removeEventListener('keydown', @_onAlt)
-      window.removeEventListener('keyup', @_onAlt)
 
   render: =>
     <div name="ToolbarWindowControls" className="toolbar-window-controls alt-#{@state.alt}">
-      <button className="close" onClick={ -> NylasEnv.close()}></button>
-      <button className="minimize" onClick={ -> NylasEnv.minimize()}></button>
-      <button className="maximize" onClick={@_onMaximize}></button>
     </div>
 
-  _onAlt: (event) =>
-    @setState(alt: event.altKey) if @state.alt isnt event.altKey
-
-  _onMaximize: (event) =>
-    if process.platform is 'darwin' and not event.altKey
-      NylasEnv.setFullScreen(!NylasEnv.isFullScreen())
-    else
-      NylasEnv.maximize()
 
 class ToolbarMenuControl extends React.Component
   @displayName: 'ToolbarMenuControl'
@@ -114,8 +97,8 @@ class ToolbarMenuControl extends React.Component
     applicationMenu = require('remote').getGlobal('application').applicationMenu
     applicationMenu.menu.popup(NylasEnv.getCurrentWindow())
 
-#ComponentRegistry.register ToolbarWindowControls,
-#  location: WorkspaceStore.Sheet.Global.Toolbar.Left
+ComponentRegistry.register ToolbarWindowControls,
+  location: WorkspaceStore.Sheet.Global.Toolbar.Left
 
 ComponentRegistry.register ToolbarMenuControl,
   location: WorkspaceStore.Sheet.Global.Toolbar.Right
