@@ -67,6 +67,7 @@ class Account extends ModelWithMetadata
     super
     @aliases ||= []
     @label ||= @emailAddress
+    @syncState ||= "running"
 
   fromJSON: (json) ->
     json["label"] ||= json[@constructor.attributes['emailAddress'].jsonKey]
