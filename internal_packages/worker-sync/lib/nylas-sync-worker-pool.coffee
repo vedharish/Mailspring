@@ -90,7 +90,7 @@ class NylasSyncWorkerPool
       if deltas['account']
         delete deltas['account']
     if modify['account']
-      @_handleAccountDelta(_.values(deltas['account']))
+      @_handleAccountDeltas(_.values(deltas['account']))
       delete modify['account']
 
     # Apply all the deltas to create objects. Gets promises for handling
