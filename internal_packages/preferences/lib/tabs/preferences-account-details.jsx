@@ -105,6 +105,11 @@ class PreferencesAccountDetails extends Component {
     this._setStateAndSave({defaultAlias});
   };
 
+  _reauthAccount = () => {
+    const {account} = this.state;
+    const ipc = require('electron').ipcRenderer;
+    ipc.send('command', 'application:add-account', account.provider);
+  };
 
   // Renderers
 
@@ -124,6 +129,16 @@ class PreferencesAccountDetails extends Component {
     }
   }
 
+  _renderReauthButton(account) {
+    if (account.syncState !== "running") {
+      return (<div className="">
+        <div className="">Nylas N1 can no longer authenticate with {account.email}. You
+          will not be able to send or receive mail.</div>
+        <button className="btn reauth-button" onClick={this._reauthAccount}>Reconnect Account</button>
+      </div>)
+    }
+  }
+
   render() {
     const {account} = this.state;
     const aliasPlaceholder = this._makeAlias(
@@ -132,6 +147,7 @@ class PreferencesAccountDetails extends Component {
 
     return (
       <div className="account-details">
+        {this._renderReauthButton(account)}
         <h3>Account Label</h3>
         <input
           type="text"
@@ -159,6 +175,8 @@ class PreferencesAccountDetails extends Component {
         <div className="newsletter">
           <NewsletterSignup emailAddress={account.emailAddress} name={account.name} />
         </div>
+
+
       </div>
     );
   }

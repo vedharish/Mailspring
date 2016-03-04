@@ -12,6 +12,14 @@ class PreferencesAccountList extends Component {
     onRemoveAccount: PropTypes.func.isRequired,
   };
 
+  _renderAccountStateIcon(account) {
+    if (account.syncState !== "running") {
+      return (<RetinaImg
+        name={`ic-settings-account-imap.png`}
+        mode={RetinaImg.Mode.ContentPreserve} />)
+    }
+  }
+
   _renderAccount = (account)=> {
     const label = account.label;
     const accountSub = `${account.name || 'No name provided'} <${account.emailAddress}>`;
@@ -28,6 +36,7 @@ class PreferencesAccountList extends Component {
               mode={RetinaImg.Mode.ContentPreserve} />
           </div>
           <div style={{flex: 1, marginLeft: 10}}>
+            {this._renderAccountStateIcon(account)}
             <div className="account-name">{label}</div>
             <div className="account-subtext">{accountSub} ({account.displayProvider()})</div>
           </div>
