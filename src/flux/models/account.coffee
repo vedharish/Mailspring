@@ -58,6 +58,11 @@ class Account extends ModelWithMetadata
       modelKey: 'defaultAlias'
       jsonKey: 'default_alias'
 
+    'syncState': Attributes.String
+      queryable: false
+      modelKey: 'syncState'
+      jsonKey: 'sync_state'
+
   constructor: ->
     super
     @aliases ||= []
