@@ -127,12 +127,6 @@ class NylasAPI
     NylasEnv.config.onDidChange('env', @_onConfigChanged)
     @_onConfigChanged()
 
-    if NylasEnv.isMainWindow()
-      Actions.notificationActionTaken.listen ({notification, action}) ->
-        if action.id is '401:reconnect'
-          ipc = require('electron').ipcRenderer
-          ipc.send('command', 'application:add-account', action.provider)
-
   _onConfigChanged: =>
     prev = {@AppID, @APIRoot, @APITokens}
 
@@ -238,24 +232,7 @@ class NylasAPI
     account = AccountStore.accounts().find (account) ->
       AccountStore.tokenForAccountId(account.id) is apiToken
 
-    email = "your mail provider"
-    email = account.emailAddress if account
-
-    Actions.postNotification
-      type: 'error'
-      tag: '401'
-      sticky: true
-      message: "Nylas N1 can no longer authenticate with #{email}. You
-                will not be able to send or receive mail. Please click
-                here to reconnect your account.",
-      icon: 'fa-sign-out'
-      actions: [{
-        default: true
-        dismisses: true
-        label: 'Reconnect'
-        provider: account?.provider ? ""
-        id: '401:reconnect'
-      }]
+    Actions.updateAccount(account.id, syncState: "failed-request")
 
     return Promise.resolve()
 

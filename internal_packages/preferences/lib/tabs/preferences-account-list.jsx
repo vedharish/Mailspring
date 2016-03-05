@@ -15,8 +15,8 @@ class PreferencesAccountList extends Component {
   _renderAccountStateIcon(account) {
     if (account.syncState !== "running") {
       return (<RetinaImg
-        name={`ic-settings-account-imap.png`}
-        mode={RetinaImg.Mode.ContentPreserve} />)
+        url="nylas://preferences/assets/icon-alert-sourcelist@2x.png`"
+        mode={RetinaImg.Mode.ContentIsMask} />)
     }
   }
 

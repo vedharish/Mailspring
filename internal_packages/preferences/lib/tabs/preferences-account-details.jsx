@@ -131,8 +131,9 @@ class PreferencesAccountDetails extends Component {
 
   _renderReauthButton(account) {
     if (account.syncState !== "running") {
-      return (<div className="">
-        <div className="">Nylas N1 can no longer authenticate with {account.email}. You
+      return (<div className="auth-failure">
+        <div className="">
+          Nylas N1 can no longer authenticate with your mail provider. You
           will not be able to send or receive mail.</div>
         <button className="btn reauth-button" onClick={this._reauthAccount}>Reconnect Account</button>
       </div>)
