@@ -112,7 +112,7 @@ export default class ComposerView extends React.Component {
     let availableWidth = contentEl.getBoundingClientRect().width;
     for (let i = 0; i < contentEl.childNodes.length; i++) {
       const child = contentEl.childNodes[i]
-      if (child.className !== "composer-action-bar-plugins" && child.className !== "spacer") {
+      if (!(/composer-action-bar-plugins/.test(child.className)) && !(/spacer/.test(child.className))) {
         availableWidth -= child.getBoundingClientRect().width
       }
     }
@@ -338,32 +338,9 @@ export default class ComposerView extends React.Component {
   }
 
   _overflowData() {
-    class OverflowWrap extends React.Component {
-      static displayName = "OverflowWrap";
-
-      render() {
-        if (!this.props.children) {
-          return false
-        }
-        const styles = {
-          display: "flex",
-          padding: "8px",
-          boxShadow: "0 0 0",
-        }
-        return (
-          <div className="composer-inner-wrap">
-            <div className="composer-action-bar-wrap" style={styles}>
-              {this.props.children}
-            </div>
-          </div>
-        )
-      }
-    }
     return {
       overflowButtonStyles: {order: 10000},
       overflowButtonClassName: "btn btn-toolbar",
-      overflowPopoverClassName: "composer-action-bar-popover",
-      overflowPopoverWrapComponent: OverflowWrap,
     }
   }
 

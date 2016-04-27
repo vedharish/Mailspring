@@ -54,11 +54,25 @@ body.platform-win32 {
   .composer-action-bar-wrap {
     position: relative;
     width: 100%;
+    z-index: 3;
     background: @background-off-primary;
     border-top: 1px solid darken(@background-off-primary, 7%);
     box-shadow: inset 0 2px 1px rgba(0,0,0,0.03);
     border-bottom: 0;
     border-radius: @border-radius-base;
+
+    .overflow-wrap {
+      display: flex;
+      position: absolute;
+      right: -20px;
+      width: 100%;
+      top: -50px;
+      background: #fcfcfc;
+      border: 1px solid darken(@background-off-primary, 7%);
+      border-bottom: 0;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
+      padding: 8px;
+    }
 
     // Buttons in the composer footer
     .btn.btn-toolbar:not(.btn-emphasis) {
@@ -274,17 +288,6 @@ body.platform-win32 {
   .attachments-area {
     padding: 0;
     margin: 0;
-  }
-}
-
-.composer-action-bar-popover {
-  .fixed-popover-pointer {
-    // -webkit-mask-image: url('images/tooltip/tooltip-bg-pointer@2x.png');
-    background-color: @background-off-primary;
-  }
-  .fixed-popover-pointer.shadow {
-    // -webkit-mask-image: url('images/tooltip/tooltip-bg-pointer-shadow@2x.png');
-    background-color: fade(@black, 22%);
   }
 }
 

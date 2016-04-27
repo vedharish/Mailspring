@@ -19,48 +19,31 @@ class MoreBtn extends React.Component
   @containerRequired: false
 
   @propTypes:
+    onClick: React.PropTypes.func,
     components: React.PropTypes.array,
     exposedProps: React.PropTypes.object,
+    overflowVisible: React.PropTypes.bool,
     visibleComponents: React.PropTypes.array,
     overflowData: React.PropTypes.shape
       overflowButtonStyles: React.PropTypes.object
       overflowButtonClassName: React.PropTypes.string
-      overflowPopoverClassName: React.PropTypes.string
-      overflowPopoverWrapComponent: React.PropTypes.func
 
   @defaultProps:
     components: []
+    onClick: () ->
     overflowData: {
       overflowButtonStyles: {}
       overflowButtonClassName: ""
-      overflowPopoverClassName: ""
     }
     visibleComponents: []
 
-  _itemContent: (component) =>
-    <component key={component.displayName} {...@props.exposedProps} />
-
-  _renderPopover: ->
-    components = _.difference(@props.components, @props.visibleComponents)
-    elements = components.map (component) =>
-      <component key={component.displayName} {...@props.exposedProps} />
-    wrap = @props.overflowData.overflowPopoverWrapComponent
-    if wrap
-      return <wrap>{elements}</wrap>
-    else
-      return elements
-
-  _onOverflow: =>
-    buttonRect = ReactDOM.findDOMNode(@).getBoundingClientRect()
-    Actions.openPopover(
-      @_renderPopover(),
-      {originRect: buttonRect, direction: 'up', className: @props.overflowData.overflowPopoverClassName}
-    )
-
   render: ->
+    className = @props.overflowData.overflowButtonClassName
+    if @props.overflowVisible then className += " btn-enabled"
+
     <button style={@props.overflowData.overflowButtonStyles}
-            className={@props.overflowData.overflowButtonClassName}
-            onClick={@_onOverflow}>
+            className={className}
+            onClick={@props.onClick}>
       <RetinaImg name="icon-composer-overflow.png" mode={RetinaImg.Mode.ContentIsMask}/>
     </button>
 
@@ -123,11 +106,13 @@ class InjectedComponentSet extends React.Component
 
   @defaultProps:
     direction: 'row'
+    exposedProps: {}
     containersRequired: true
     onComponentsDidRender: ->
 
   constructor: (@props) ->
     @state = @_getStateFromStores()
+    @state.overflowVisible = false
     @_renderedElements = new Set()
 
   componentDidMount: =>
@@ -153,7 +138,7 @@ class InjectedComponentSet extends React.Component
       widthAcc = 0
       spaceAvailable = @props.maxWidth - MoreBtn.width
 
-      for data in @_getElementsWithComponent()
+      for data in @_getRenderedComponentData()
         continue unless data
         {component, element} = data
         widthAcc += ReactDOM.findDOMNode(element).getBoundingClientRect().width
@@ -175,17 +160,27 @@ class InjectedComponentSet extends React.Component
     else
       return @state.components
 
-  render: =>
-    @_renderedElements = new Set()
-    flexboxProps = Utils.fastOmit(@props, Object.keys(@constructor.propTypes))
-    flexboxClassName = @props.className ? ""
-    exposedProps = @props.exposedProps ? {}
+  _overflowComponents: ->
+    _.difference @state.components, @_elementsAtCurrentWidth()
 
-    elements = @_elementsAtCurrentWidth().map (component, i) =>
-      if component is MoreBtn
-        return <component visibleComponents={@state.visibleComponents} components={@state.components} overflowData={@props.overflowData} exposedProps={exposedProps} ref={component.displayName} key={component.displayName} />
+  _onMoreClick: =>
+    @setState(overflowVisible: !@state.overflowVisible)
+
+  _renderMoreBtn: (component) ->
+    <component
+      onClick={@_onMoreClick}
+      components={@state.components}
+      overflowData={@props.overflowData}
+      exposedProps={@props.exposedProps}
+      overflowVisible={@state.overflowVisible}
+      visibleComponents={@state.visibleComponents}
+      ref={component.displayName} key={component.displayName} />
+
+  _renderComponents: (components) ->
+    return components.map (component, i) =>
+      return @_renderMoreBtn(component) if component is MoreBtn
       if @props.containersRequired is false or component.containerRequired is false
-        return <component ref={component.displayName} key={component.displayName} {...exposedProps} />
+        return <component ref={component.displayName} key={component.displayName} {...@props.exposedProps} />
       else
         return (
           <UnsafeComponent
@@ -193,17 +188,29 @@ class InjectedComponentSet extends React.Component
             key={component.displayName}
             component={component}
             onComponentDidRender={@_onComponentDidRender.bind(@, component.displayName)}
-            {...exposedProps} />
+            {...@props.exposedProps} />
         )
 
+  render: =>
+    @_renderedElements = new Set()
+    flexboxProps = Utils.fastOmit(@props, Object.keys(@constructor.propTypes))
+    flexboxClassName = @props.className ? ""
+
+    visibleElements = @_renderComponents(@_elementsAtCurrentWidth())
+    overflowElements = @_renderComponents(@_overflowComponents())
+
+    displayOverflow = "none"
+    if @state.overflowVisible && overflowElements.length > 0
+      displayOverflow = "flex"
 
     if @state.visible
       flexboxClassName += " registered-region-visible"
-      elements.splice(0,0, <InjectedComponentLabel key="_label" matching={@props.matching} {...exposedProps} />)
-      elements.push(<span key="_clear" style={clear:'both'}/>)
+      visibleElements.splice(0,0, <InjectedComponentLabel key="_label" matching={@props.matching} {...@props.exposedProps} />)
+      visibleElements.push(<span key="_clear" style={clear:'both'}/>)
 
     <Flexbox className={flexboxClassName} {...flexboxProps}>
-      {elements}
+      {visibleElements}
+      <div className="overflow-wrap" style={display: displayOverflow}>{overflowElements}</div>
       {@props.children ? []}
     </Flexbox>
 
@@ -212,13 +219,14 @@ class InjectedComponentSet extends React.Component
     if @_renderedElements.size is @_elementsAtCurrentWidth().length
       @delayedComponentsDidUpdate(notify: true)
 
-  _getElementsWithComponent: ->
+  _getRenderedComponentData: ->
     componentsByName = {}
     for component, i in @state.components
       componentsByName[component.displayName] = {component, i}
 
     elData = _.map @refs, (element, displayName) =>
       c = componentsByName[displayName]
+      return null if ReactDOM.findDOMNode(element).closest(".overflow-wrap")
       return null unless c
       {element, displayName, component: c.component, i: c.i}
 
