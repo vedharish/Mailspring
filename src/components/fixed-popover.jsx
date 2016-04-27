@@ -32,6 +32,7 @@ class FixedPopover extends Component {
   static propTypes = {
     children: PropTypes.element,
     direction: PropTypes.string,
+    className: PropTypes.string,
     fallbackDirection: PropTypes.string,
     originRect: PropTypes.shape({
       bottom: PropTypes.number,
@@ -323,7 +324,7 @@ class FixedPopover extends Component {
     const animateClass = visible ? ' popout' : '';
 
     return (
-      <div>
+      <div className={this.props.className || ""}>
         <div ref="blurTrap" className="fixed-popover-blur-trap" style={blurTrapStyle}/>
         <div
           ref="popoverContainer"

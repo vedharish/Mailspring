@@ -136,6 +136,7 @@ class Toolbar extends React.Component
 
   constructor: (@props) ->
     @state = @_getStateFromStores()
+    @_clientHeight = null
 
   componentDidMount: =>
     @mounted = true
@@ -217,7 +218,9 @@ class Toolbar extends React.Component
       columnToolbarEl.style.width = "#{columnEl.offsetWidth}px"
 
     # Record our overall height for sheets
-    remote.getCurrentWindow().setSheetOffset(el.clientHeight)
+    if el.clientHeight isnt @_clientHeight
+      remote.getCurrentWindow().setSheetOffset(el.clientHeight)
+      @_clientHeight = el.clientHeight
 
   _onWindowResize: =>
     @recomputeLayout()

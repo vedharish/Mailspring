@@ -1,6 +1,6 @@
 import NylasWindow from './nylas-window'
 
-const DEBUG_SHOW_HOT_WINDOW = false;
+const DEBUG_SHOW_HOT_WINDOW = true;
 
 /**
  * It takes a full second or more to bootup a Nylas window. Most of this

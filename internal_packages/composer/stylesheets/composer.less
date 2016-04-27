@@ -277,6 +277,17 @@ body.platform-win32 {
   }
 }
 
+.composer-action-bar-popover {
+  .fixed-popover-pointer {
+    // -webkit-mask-image: url('images/tooltip/tooltip-bg-pointer@2x.png');
+    background-color: @background-off-primary;
+  }
+  .fixed-popover-pointer.shadow {
+    // -webkit-mask-image: url('images/tooltip/tooltip-bg-pointer-shadow@2x.png');
+    background-color: fade(@black, 22%);
+  }
+}
+
 // Overrides for the full-window popout composer
 .composer-full-window {
   width: 100%;

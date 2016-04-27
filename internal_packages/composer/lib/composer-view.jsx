@@ -54,6 +54,7 @@ export default class ComposerView extends React.Component {
     super(props)
     this.state = {
       showQuotedText: false,
+      actionBarWidth: 0,
     }
   }
 
@@ -61,6 +62,9 @@ export default class ComposerView extends React.Component {
     if (this.props.session) {
       this._receivedNewSession();
     }
+    window.addEventListener('resize', this._calculateActionBarWidth, true)
+    this._calculateActionBarWidth();
+    this._mounted = true;
   }
 
   componentWillReceiveProps(newProps) {
@@ -78,6 +82,12 @@ export default class ComposerView extends React.Component {
     if (this._recoveredSelection) {
       this._recoveredSelection = null;
     }
+    this._calculateActionBarWidth();
+  }
+
+  componentWillUnmount() {
+    this._mounted = false;
+    window.removeEventListener('resize', this._calculateActionBarWidth, true)
   }
 
   focus() {
@@ -92,6 +102,22 @@ export default class ComposerView extends React.Component {
       this.refs.header.showAndFocusField(Fields.Subject);
     } else {
       this.refs[Fields.Body].focus();
+    }
+  }
+
+  // resize events may be debounced. Do a mounted check
+  _calculateActionBarWidth = () => {
+    if (!this._mounted) { return }
+    const contentEl = ReactDOM.findDOMNode(this.refs.actionBarContent);
+    let availableWidth = contentEl.getBoundingClientRect().width;
+    for (let i = 0; i < contentEl.childNodes.length; i++) {
+      const child = contentEl.childNodes[i]
+      if (child.className !== "composer-action-bar-plugins" && child.className !== "spacer") {
+        availableWidth -= child.getBoundingClientRect().width
+      }
+    }
+    if (availableWidth !== this.state.actionBarWidth) {
+      this.setState({actionBarWidth: availableWidth})
     }
   }
 
@@ -311,10 +337,42 @@ export default class ComposerView extends React.Component {
     return _.reject(files, Utils.shouldDisplayAsImage);
   }
 
+  _overflowData() {
+    class OverflowWrap extends React.Component {
+      static displayName = "OverflowWrap";
+
+      render() {
+        if (!this.props.children) {
+          return false
+        }
+        const styles = {
+          display: "flex",
+          padding: "8px",
+          boxShadow: "0 0 0",
+        }
+        return (
+          <div className="composer-inner-wrap">
+            <div className="composer-action-bar-wrap" style={styles}>
+              {this.props.children}
+            </div>
+          </div>
+        )
+      }
+    }
+    return {
+      overflowButtonStyles: {order: 10000},
+      overflowButtonClassName: "btn btn-toolbar",
+      overflowPopoverClassName: "composer-action-bar-popover",
+      overflowPopoverWrapComponent: OverflowWrap,
+    }
+  }
+
   _renderActionsRegion() {
     return (
-      <div className="composer-action-bar-content">
+      <div className="composer-action-bar-content" ref="actionBarContent">
         <InjectedComponentSet
+          overflowData={this._overflowData()}
+          maxWidth={this.state.actionBarWidth}
           className="composer-action-bar-plugins"
           matching={{role: "Composer:ActionButton"}}
           exposedProps={{
@@ -343,7 +401,7 @@ export default class ComposerView extends React.Component {
           <RetinaImg name="icon-composer-attachment.png" mode={RetinaImg.Mode.ContentIsMask} />
         </button>
 
-        <div style={{order: 0, flex: 1}} />
+        <div style={{order: 0, flex: 1}} className="spacer"/>
 
 
         <InjectedComponent
