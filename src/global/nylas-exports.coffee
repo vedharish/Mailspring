@@ -118,6 +118,7 @@ class NylasExports
   @lazyLoadAndRegisterStore "TaskQueueStatusStore", 'task-queue-status-store'
   @lazyLoadAndRegisterStore "FocusedPerspectiveStore", 'focused-perspective-store'
   @lazyLoadAndRegisterStore "SearchableComponentStore", 'searchable-component-store'
+  @lazyLoadAndRegisterStore "MetadataComposerStatusStore", 'metadata-composer-status-store'
 
   # Extensions
   @lazyLoad "ExtensionRegistry", 'extension-registry'

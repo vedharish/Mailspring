@@ -112,7 +112,8 @@ export default class ComposerView extends React.Component {
     let availableWidth = contentEl.getBoundingClientRect().width;
     for (let i = 0; i < contentEl.childNodes.length; i++) {
       const child = contentEl.childNodes[i]
-      if (!(/composer-action-bar-plugins/.test(child.className)) && !(/spacer/.test(child.className))) {
+      if (!(/composer-action-bar-plugins/.test(child.className)) &&
+          !(/spacer/.test(child.className))) {
         availableWidth -= child.getBoundingClientRect().width
       }
     }
