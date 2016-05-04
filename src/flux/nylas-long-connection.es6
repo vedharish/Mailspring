@@ -1,197 +1,174 @@
-import _ from 'underscore'
-import url from 'url'
-import {Emitter} from 'event-kit'
+import Rx from 'rx-lite'
 
 
-const CONNECTION_TIMEOUT = 60 * 60 * 1000
-const RESULTS_THROTTLE = 400
+const DEFAULT_TIMEOUT = 30 * 60 * 1000
+const MAX_BUFFER_SIZE = 100000
+const {UNSENT, OPENED, HEADERS_RECEIVED, LOADING, DONE} = XMLHttpRequest
 
-export default class NylasLongConnection {
-  static Statuses = {
-    None: 'none',
-    Idle: 'idle',
-    Connecting: 'connecting',
-    Connected: 'connected',
-    Closed: 'closed', // Socket has been closed for any reason
-    Ended: 'ended', // We have received 'end()' and will never open again.
-  }
+export const Status = {
+  None: 'none',
+  Connecting: 'connecting',
+  Connected: 'connected',
+  Closed: 'closed', // Socket has been closed for any reason
+  Ended: 'ended', // We have received 'end()' and will never open again.
+}
 
-  constructor(api, accountId, {path, timeout, debounceInterval, throttleInterval, onStatusChanged, onError} = {}) {
-    this._api = api
-    this._accountId = accountId
-    this._status = NylasLongConnection.Statuses.None
-    this._req = null
-    this._emitter = new Emitter()
-    this._buffer = ''
-    this._results = []
+function XhrStreamingConnection({url, method = 'GET', timeout = DEFAULT_TIMEOUT}) {
+  const xhr = new XMLHttpRequest()
+  xhr.timeout = timeout
 
-    // Options
-    this._path = path
-    this._timeout = timeout || CONNECTION_TIMEOUT
-    this._debounceInterval = debounceInterval
-    this._throttleInterval = throttleInterval || RESULTS_THROTTLE
-    this._onStatusChanged = onStatusChanged || (() => {})
-    this._onError = onError || (() => {})
-
-    this._resultsReceived = () => {
-      if (this._results.length === 0) {
+  const statusStreamObservable = Rx.Observable.create((observer) => {
+    let lastReadyState = UNSENT
+    xhr.onreadystatechange = () => {
+      if (lastReadyState === xhr.readyState) { return }
+      lastReadyState = xhr.readyState
+      switch (xhr.readyState) {
+      case OPENED:
+        observer.onNext(Status.Connecting)
+        break
+      case HEADERS_RECEIVED:
+        observer.onNext(Status.Connected)
+        break
+      case DONE:
+        observer.onNext(Status.Closed)
+        observer.onComplete()
+        break
+      default:
         return
       }
-      this._emitter.emit('results-stopped-arriving', this._results);
-      this._results = []
     }
-    if (this._debounceInterval != null) {
-      this._resultsReceived = _.debounce(this._resultsReceived, this._debounceInterval)
+  })
+
+  const responseStreamObservable = Rx.Observable.create((observer) => {
+    let offset = 0
+
+    xhr.onreadystatechange = () => {
+      const {status, responseText, readyState} = xhr
+      if (responseText.length > MAX_BUFFER_SIZE) {
+        xhr.abort()
+        return
+      }
+      if (status !== 200) {
+        observer.onError(responseText)
+        return
+      }
+      if (!responseText) { return }
+      if (readyState === LOADING) {
+        const chunk = responseText.slice(offset)
+        offset += chunk.length
+        observer.onNext(chunk)
+      }
+      if (readyState === DONE) {
+        const chunk = responseText.slice(offset)
+        offset += chunk.length
+        observer.onNext(chunk)
+        observer.onComplete()
+      }
     }
-    return this
+
+    xhr.onerror = (error) => {
+      observer.onError(error)
+    }
+  })
+
+  xhr.open(method, url)
+  xhr.send()
+  return {xhr, responseStreamObservable, statusStreamObservable}
+}
+
+function JSONStreamObservable(dataObservable) {
+  let buffer = ''
+
+  return Rx.Observable.create((observer) => {
+    const onData = (data) => {
+      buffer += data
+      const rawJSONArray = buffer.split('\n')
+
+      // We can't parse the last block - we don't know whether we've
+      // received the entire delta or only part of it. Wait
+      // until we have more.
+      buffer = rawJSONArray.pop()
+
+      try {
+        const jsonData = rawJSONArray
+          .filter(str => str.length > 0)
+          .map(str => JSON.parse(str))
+        observer.onNext(jsonData)
+      } catch (e) {
+        observer.onError(e)
+      }
+    }
+
+    const disposable = dataObservable.subscribe(onData, observer.onError, observer.onCompleted)
+    return Rx.Disposable.create(() => disposable.dispose())
+  })
+}
+
+export default class NylasStreamingConnection {
+
+  constructor({accountId, ...opts}) {
+    this._accountId = accountId
+    this._opts = opts
+    this._status = Status.None
+
+    this.xhr = null
+    this._statusObservable = null
+    this._jsonStreamObservable = null
+    this._disposables = []
   }
 
   get accountId() {
-    return this._accountId;
+    return this._accountId
   }
 
   get status() {
-    return this._status;
+    return this._status
   }
 
-  setStatus(status) {
-    if (this._status === status) {
-      return
-    }
-    this._status = status
-    this._onStatusChanged(this, status)
+  get statusObservable() {
+    return this._statusObservable
   }
 
-  onResults(callback) {
-    this._emitter.on('results-stopped-arriving', callback)
-  }
-
-  processBuffer = () => {
-    const bufferJSONs = this._buffer.split('\n')
-
-    // We can't parse the last block - we don't know whether we've
-    // received the entire result or only part of it. Wait
-    // until we have more.
-    this._buffer = bufferJSONs.pop()
-
-    bufferJSONs.forEach((resultJSON) => {
-      if (resultJSON.length === 0) {
-        return
-      }
-      let result = null
-      try {
-        result = JSON.parse(resultJSON)
-        if (result) {
-          this._results.push(result)
-        }
-      } catch (e) {
-        console.error(`${resultJSON} could not be parsed as JSON.`, e)
-      }
-    })
-    this._resultsReceived()
+  get jsonStreamObservable() {
+    return this._jsonStreamObservable
   }
 
   start() {
-    const canStart = (
-      [NylasLongConnection.Statuses.None, NylasLongConnection.Statuses.Closed].includes(this._status)
-    )
-    if (!canStart) {
-      return this;
+    if (![Status.None, Status.Closed].includes(this._status)) {
+      return this
     }
 
-    const token = this._api.accessTokenForAccountId(this._accountId)
-    if (!token || this._req) {
-      return this;
-    }
+    const {apiRoot, path, method, timeout} = this._opts
+    const url = `${apiRoot}${path}`
 
-    const options = url.parse(`${this._api.APIRoot}${this._path}`)
-    options.auth = `${token}:`
+    const {xhr, statusStreamObservable, responseStreamObservable} = XhrStreamingConnection({url, method, timeout})
+    this.xhr = xhr
+    this._statusObservable = statusStreamObservable
+    this._jsonStreamObservable = JSONStreamObservable(responseStreamObservable)
+    this._disposables = [
+      this._statusObservable.subscribe(::this._onStatusChanged),
+    ]
 
-    let lib;
-    if (this._api.APIRoot.indexOf('https') === -1) {
-      lib = require('http')
-    } else {
-      options.port = 443
-      lib = require('https')
-    }
-
-    const processBufferThrottled = _.throttle(this.processBuffer, this._throttleInterval, {leading: false})
-    this._req = lib.request(options, (responseStream) => {
-      if (responseStream.statusCode !== 200) {
-        responseStream.on('data', (chunk) => {
-          const message = chunk.toString('utf8')
-          console.error(message)
-          this._onError({message})
-          this.close()
-        })
-        return;
-      }
-
-      responseStream.setEncoding('utf8')
-      responseStream.on('close', () => {
-        this.close()
-      })
-      responseStream.on('data', (chunk) => {
-        if (this.isClosed()) {
-          return;
-        }
-
-        // Ignore redundant newlines sent as pings. Want to avoid
-        // calls to this.onProcessBuffer that contain no actual updates
-        if (chunk === '\n' && (this._buffer.length === 0 || this._buffer[-1] === '\n')) {
-          return
-        }
-        this._buffer += chunk
-        processBufferThrottled()
-      })
-    })
-    this._req.setTimeout(this._timeout)
-    this._req.setSocketKeepAlive(true)
-    this._req.on('error', (err) => {
-      this._onError(err)
-      this.close()
-    })
-    this._req.on('socket', (socket) => {
-      this.setStatus(NylasLongConnection.Statuses.Connecting)
-      socket.on('connect', () => {
-        this.setStatus(NylasLongConnection.Statuses.Connected)
-      })
-    })
-    this._req.end()
     return this
   }
 
-  hasEnded() {
-    return this._status === NylasLongConnection.Statuses.Ended
+  _onStatusChanged(status) {
+    this._status = status
   }
 
-  isClosed() {
-    return [
-      NylasLongConnection.Statuses.None,
-      NylasLongConnection.Statuses.Closed,
-      NylasLongConnection.Statuses.Ended,
-    ].includes(this._status)
+  _dispose(status) {
+    if (this.xhr) {
+      this.xhr.abort()
+    }
+    this._setStatus(status)
+    this._disposables.forEach(disposable => disposable.dispose())
   }
 
   close() {
-    return this.dispose(NylasLongConnection.Statuses.Closed)
+    this._dispose(Status.Closed)
   }
 
   end() {
-    return this.dispose(NylasLongConnection.Statuses.Ended)
-  }
-
-  dispose(status) {
-    this._emitter.dispose()
-    this._buffer = ''
-    if (this._req) {
-      this._req.end()
-      this._req.abort()
-      this._req = null
-    }
-    if (this._status !== status) {
-      this.setStatus(status)
-    }
-    return this
+    this._dispose(Status.Ended)
   }
 }
