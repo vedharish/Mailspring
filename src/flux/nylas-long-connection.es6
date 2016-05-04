@@ -15,11 +15,16 @@ export const Status = {
 
 function XhrStreamingConnection({url, method = 'GET', timeout = DEFAULT_TIMEOUT}) {
   const xhr = new XMLHttpRequest()
+  const readyStateHandlers = []
+
   xhr.timeout = timeout
+  xhr.onreadystatechange = () => {
+    readyStateHandlers.forEach(handler => handler())
+  }
 
   const statusStreamObservable = Rx.Observable.create((observer) => {
     let lastReadyState = UNSENT
-    xhr.onreadystatechange = () => {
+    readyStateHandlers.push(() => {
       if (lastReadyState === xhr.readyState) { return }
       lastReadyState = xhr.readyState
       switch (xhr.readyState) {
@@ -36,13 +41,13 @@ function XhrStreamingConnection({url, method = 'GET', timeout = DEFAULT_TIMEOUT}
       default:
         return
       }
-    }
+    })
   })
 
   const responseStreamObservable = Rx.Observable.create((observer) => {
     let offset = 0
 
-    xhr.onreadystatechange = () => {
+    readyStateHandlers.push(() => {
       const {status, responseText, readyState} = xhr
       if (responseText.length > MAX_BUFFER_SIZE) {
         xhr.abort()
@@ -64,7 +69,7 @@ function XhrStreamingConnection({url, method = 'GET', timeout = DEFAULT_TIMEOUT}
         observer.onNext(chunk)
         observer.onComplete()
       }
-    }
+    })
 
     xhr.onerror = (error) => {
       observer.onError(error)
