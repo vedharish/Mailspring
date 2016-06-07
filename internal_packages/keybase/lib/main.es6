@@ -1,6 +1,7 @@
 import {PreferencesUIStore, ComponentRegistry, ExtensionRegistry} from 'nylas-exports';
 
 import EncryptMessageButton from './encrypt-button';
+import SignMessageButton from './sign-button';
 import DecryptMessageButton from './decrypt-button';
 import DecryptPGPExtension from './decryption-preprocess';
 import RecipientKeyChip from './recipient-key-chip';
@@ -15,6 +16,7 @@ export function activate() {
     component: PreferencesKeybase,
   });
   ComponentRegistry.register(EncryptMessageButton, {role: 'Composer:ActionButton'});
+  ComponentRegistry.register(SignMessageButton, {role: 'Composer:ActionButton'});
   ComponentRegistry.register(DecryptMessageButton, {role: 'message:BodyHeader'});
   ComponentRegistry.register(RecipientKeyChip, {role: 'Composer:RecipientChip'});
   ExtensionRegistry.MessageView.register(DecryptPGPExtension);
@@ -23,6 +25,7 @@ export function activate() {
 
 export function deactivate() {
   ComponentRegistry.unregister(EncryptMessageButton);
+  ComponentRegistry.unregister(SignMessageButton)
   ComponentRegistry.unregister(DecryptMessageButton);
   ComponentRegistry.unregister(RecipientKeyChip);
   ExtensionRegistry.MessageView.unregister(DecryptPGPExtension);

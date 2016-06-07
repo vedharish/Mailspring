@@ -124,11 +124,13 @@ class PGPKeyStore extends NylasStore
         if err
           console.warn err
         else
+          runCallback = true
           if km.is_pgp_locked()
             if passphrase?
               km.unlock_pgp { passphrase: passphrase }, (err) =>
                 if err
-                  console.warn err
+                  NylasEnv.showErrorDialog("Incorrect password provided for PGP private key.")
+                  runCallback = false
             else
               console.error "No passphrase provided, but key is encrypted."
           # NOTE this only allows for one priv key per address
@@ -137,8 +139,8 @@ class PGPKeyStore extends NylasStore
           key.setTimeout()
           @getKeybaseData(key)
         @trigger(@)
-        if callback?
-          callback()
+        if callback? and runCallback
+          callback(key)
     )
 
   getKeybaseData: (identity) =>
@@ -176,7 +178,7 @@ class PGPKeyStore extends NylasStore
     atIndex = identity.addresses[0].indexOf("@")
     shortName = identity.addresses[0].slice(0, atIndex).concat(".asc")
     savePath = path.join(NylasEnv.savedState.lastDownloadDirectory, shortName)
-    @getKeyContents(key: identity, passphrase: passphrase, callback: ( =>
+    @getKeyContents(key: identity, passphrase: passphrase, callback: ( (identity) =>
       NylasEnv.showSaveDialog({
         title: "Export PGP Key",
         defaultPath: savePath,

@@ -60,6 +60,8 @@ class EncryptMessageButton extends React.Component
     return keys
 
   _onKeystoreChange: =>
+    # TODO this may not be working
+
     # if something changes with the keys, check to make sure the recipients
     # haven't changed (thus invalidating our encrypted message)
     if @state.currentlyEncrypted
@@ -77,23 +79,8 @@ class EncryptMessageButton extends React.Component
         # someone added/removed a key - our encrypted body is now out of date
         @_toggleCrypt()
 
-  render: ->
-    classnames = "btn btn-toolbar"
-    if @state.currentlyEncrypted
-      classnames += " btn-enabled"
-
-    <div className="n1-keybase">
-      <button title="Encrypt email body" className={ classnames } onClick={ => @_onClick()} ref="button">
-        <RetinaImg url="nylas://keybase/encrypt-composer-button@2x.png" mode={RetinaImg.Mode.ContentIsMask} />
-      </button>
-    </div>
-
-  _onClick: =>
-    @_toggleCrypt()
-
   _toggleCrypt: =>
     # if decrypted, encrypt, and vice versa
-    # addresses which don't have a key
     if @state.currentlyEncrypted
       # if the message is already encrypted, place the stored plaintext back
       # in the draft (i.e. un-encrypt)
@@ -105,7 +92,6 @@ class EncryptMessageButton extends React.Component
       identities = @_getKeys()
       @_checkKeysAndEncrypt(plaintext, identities, (err, cryptotext) =>
         if err
-          console.warn err
           NylasEnv.showErrorDialog(err)
         if cryptotext? and cryptotext != ""
           # <pre> tag prevents gross HTML formatting in-flight
@@ -132,6 +118,9 @@ class EncryptMessageButton extends React.Component
       msg: text
     pgp.box(params, cb)
 
+  messageEncrypted: ->
+    return @state.currentlyEncrypted
+
   _checkKeysAndEncrypt: (text, identities, cb) =>
     emails = _.chain(identities)
       .pluck("addresses")
@@ -154,5 +143,16 @@ class EncryptMessageButton extends React.Component
           closeOnAppBlur: false,
         })
       )
+
+  render: ->
+    classnames = "btn btn-toolbar"
+    if @state.currentlyEncrypted
+      classnames += " btn-enabled"
+
+    <div className="n1-keybase">
+      <button title="Encrypt email body" className={ classnames } onClick={ => @_toggleCrypt()} ref="button">
+        <RetinaImg url="nylas://keybase/encrypt-composer-button@2x.png" mode={RetinaImg.Mode.ContentIsMask} />
+      </button>
+    </div>
 
 module.exports = EncryptMessageButton
