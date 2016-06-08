@@ -2,16 +2,15 @@
 
 TODO:
 -----
+* detecting and validating signed messages
 * decryption error handling
-* remove the .asc extension from decrypted downloads
 * final refactor
-* tests
+* improved tests
 * docs
 
 
 WISHLIST:
 -----
-* message signing
 * encrypted attachment handling
 * integrate MIT PGP Keyserver search into Keybase searchbar
 * make the decrypt interface a message body overlay instead of a button in the header
