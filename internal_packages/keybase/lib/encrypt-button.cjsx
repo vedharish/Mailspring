@@ -39,7 +39,7 @@ class EncryptMessageButton extends React.Component
     @unlistenKeystore()
 
   componentWillReceiveProps: (nextProps) ->
-    if @state.currentlyEncrypted and nextProps.draft.body != @props.draft.body and nextProps.draft.body != @state.cryptotext
+    if (@state.currentlyEncrypted or @state.currentlySigned) and nextProps.draft.body != @props.draft.body and nextProps.draft.body != @state.cryptotext
       # A) we're encrypted
       # B) someone changed something
       # C) the change was AWAY from the "correct" cryptotext
@@ -170,11 +170,11 @@ class EncryptMessageButton extends React.Component
     else
       # if body neither encrypted nor signed, save the plaintext
       if !@state.currentlyEncrypted
-        plaintext = @props.draft.body
         @setState({plaintext: @props.draft.body})
+        text = @props.draft.body
       else
-        plaintext = @state.plaintext
-      @_getKeyAndSign(plaintext)
+        text = @state.plaintext
+      @_getKeyAndSign(text)
 
   _getKeyAndSign: (text) ->
     popoverTarget = ReactDOM.findDOMNode(@refs.signbutton).getBoundingClientRect()
@@ -223,15 +223,20 @@ class EncryptMessageButton extends React.Component
 
   _sign: (identity, text) =>
     km = identity.key
+    openpgp = pgp.const.openpgp
+    flags = openpgp.key_flags.sign_data
     params =
-      sign_with: km
+      signing_key: km.find_best_pgp_key(flags)
       msg: text
-    pgp.box(params, (err, cryptotext) =>
+    pgp.clearsign(params, (err, cryptotext) =>
         if err
           NylasEnv.showErrorDialog(err)
         if cryptotext? and cryptotext != ""
           # <pre> tag prevents gross HTML formatting in-flight
-          cryptotext = @_formatSignature(@props.draft.body, cryptotext)
+          if !@state.currentlyEncrypted
+            cryptotext = "<pre>\n#{cryptotext}</pre>"
+          else
+            cryptotext = @_formatSignature(cryptotext)
           @setState({
             currentlySigned: true
             cryptotext: cryptotext
@@ -241,34 +246,31 @@ class EncryptMessageButton extends React.Component
 
   ### Draft Body Formatting ###
 
+  _formatSignature: (cryptotext) =>
+    # strip the signature from a signed message body
+    encrypted = @state.cryptotext
+    encryptedBody = encrypted.slice(encrypted.indexOf('<pre>') + '<pre>'.length, encrypted.indexOf('</pre>'))
+
+    header = "<pre>\n-----BEGIN PGP SIGNED MESSAGE-----\nHash: SHA512\n\n"
+    sigStart = "\n-----BEGIN PGP SIGNATURE-----"
+
+    signature = cryptotext.slice(cryptotext.indexOf(sigStart), cryptotext.length)
+
+    return header + encryptedBody + signature
+
   _deformatEncrypted: (cryptotext) =>
     plaintext = @state.plaintext
     # strip the encrypted block from a signed message body
-    header = "<pre>-----BEGIN PGP SIGNED MESSAGE-----\n"
+    header = "<pre>\n-----BEGIN PGP SIGNED MESSAGE-----\nHash: SHA512\n\n"
     sigStart = "\n-----BEGIN PGP SIGNATURE-----"
 
     signature = cryptotext.slice(cryptotext.indexOf(sigStart), cryptotext.length)
 
     return header + plaintext + signature
 
-  _formatSignature: (plaintext, cryptotext) =>
-    # format a signed message the way that other mail clients are expecting
-    pgpStart = "-----BEGIN PGP MESSAGE-----"
-    pgpEnd = "-----END PGP MESSAGE-----"
-
-    cryptosigned = cryptotext.replace(pgpStart, "\n-----BEGIN PGP SIGNATURE-----")
-      .replace(pgpEnd, "-----END PGP SIGNATURE-----")
-
-    header = "<pre>-----BEGIN PGP SIGNED MESSAGE-----\n"
-    signature = "#{cryptosigned}</pre>"
-
-    plaintext = plaintext.replace("<pre>", "").replace("</pre>", "")
-
-    return header + plaintext + signature
-
   _deformatSignature: (cryptotext) =>
     # strip the signature from a signed message body
-    header = "<pre>-----BEGIN PGP SIGNED MESSAGE-----\n"
+    header = "<pre>\n-----BEGIN PGP SIGNED MESSAGE-----\nHash: SHA512\n\n"
     sigStart = "\n-----BEGIN PGP SIGNATURE-----"
 
     noSignature = cryptotext.slice(0, cryptotext.indexOf(sigStart))
