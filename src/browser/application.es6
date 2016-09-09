@@ -72,8 +72,12 @@ export default class Application extends EventEmitter {
     this.handleEvents();
     this.handleLaunchOptions(options);
 
-    const services = new LaunchServices;
-    services.registerForURLScheme('nylas');
+    if (process.platform === 'linux') {
+      const services = new LaunchServices();
+      services.registerForURLScheme('nylas');
+    } else {
+      app.setAsDefaultProtocolClient('nylas')
+    }
   }
 
   getMainWindow() {
