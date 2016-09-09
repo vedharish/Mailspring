@@ -201,6 +201,8 @@ class NylasExports
   @lazyLoad "SystemStartService", 'system-start-service'
   @lazyLoadCustomGetter "APMWrapper", -> require('../apm-wrapper')
 
+  @lazyLoad "ExternalThreads", 'pro/packages/thread-sharing/external-threads'
+
   # Testing
   @lazyLoadCustomGetter "NylasTestUtils", -> require '../../spec/nylas-test-utils'
 
