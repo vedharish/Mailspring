@@ -73,6 +73,7 @@ class NylasComponentKit
   @load "OverlaidComponents", "overlaid-components/overlaid-components"
   @load "OverlaidComposerExtension", "overlaid-components/overlaid-composer-extension"
   @load "OAuthSignInPage", "oauth-signin-page"
+  @load "ClickToCopyField", "click-to-copy-field"
 
   @load "ScrollRegion", 'scroll-region'
   @load "ResizableRegion", 'resizable-region'
