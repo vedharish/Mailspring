@@ -1,20 +1,36 @@
 exec = require('child_process').exec
 fs = require('fs')
+{remote, shell} = require('electron')
 
 bundleIdentifier = 'com.nylas.nylas-mail'
 
-class LaunchServicesUnavailable
+class LaunchServicesWindows
   available: ->
-    false
+    true
 
   isRegisteredForURLScheme: (scheme, callback) ->
-    throw new Error "isRegisteredForURLScheme is not available"
+    exec "reg.exe query HKCU\\SOFTWARE\\Microsoft\\Windows\\Roaming\\OpenWith\\UrlAssociations\\#{scheme}\\UserChoice", (err, stdout, stderr) ->
+      return callback(err) if callback and err
+      callback(stdout.includes('Nylas'))
 
   resetURLScheme: (scheme, callback) ->
-    throw new Error "resetURLScheme is not available"
+    remote.dialog.showMessageBox(null, {
+      type: 'info',
+      buttons: ['Thanks'],
+      message: "Visit Settings to change your default mail client.",
+      detail: "You'll find Nylas N1 listed as an option in Settings > System > Default Apps > Mail.",
+    })
 
   registerForURLScheme: (scheme, callback) ->
-    throw new Error "registerForURLScheme is not available"
+    remote.dialog.showMessageBox null, {
+      type: 'info',
+      buttons: ['Dismiss', 'Learn More'],
+      defaultId: 1,
+      message: "Visit Settings to make Nylas N1 your default mail client.",
+      detail: "You'll find Nylas N1 listed as an option in Settings > System > Default Apps > Mail. Thanks for using N1!",
+    }, (button) ->
+      if button is 'Learn More'
+        shell.openExternal('https://support.nylas.com/hc/en-us/articles/229277648')
 
 class LaunchServicesLinux
   available: ->
@@ -117,12 +133,15 @@ class LaunchServicesMac
       @writeDefaults(defaults, callback)
 
 
-module.exports = LaunchServicesUnavailable
 if process.platform is 'darwin'
   module.exports = LaunchServicesMac
 else if process.platform is 'linux'
   module.exports = LaunchServicesLinux
+else if process.platform is 'win32'
+  module.exports = LaunchServicesWindows
+else
+  module.exports = null
 
 module.exports.LaunchServicesMac = LaunchServicesMac
 module.exports.LaunchServicesLinux = LaunchServicesLinux
-module.exports.LaunchServicesUnavailable = LaunchServicesUnavailable
+module.exports.LaunchServicesWindows = LaunchServicesWindows

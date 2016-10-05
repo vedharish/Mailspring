@@ -377,7 +377,11 @@ module.exports = (grunt) ->
     'compile',
     'generate-license:save',
     'generate-module-cache',
-    'compile-packages-slug']
+    'compile-packages-slug',
+    'set-version',
+    'lint',
+    'generate-asar'
+  ]
   buildTasks.push('copy-info-plist') if process.platform is 'darwin'
   buildTasks.push('set-exe-icon') if process.platform is 'win32'
   grunt.registerTask('build', buildTasks)
@@ -386,7 +390,6 @@ module.exports = (grunt) ->
              'download-electron',
              'build']
   ciTasks.push('dump-symbols') if process.platform isnt 'win32'
-  ciTasks.push('set-version', 'lint', 'generate-asar')
 
   if process.platform is "darwin"
     ciTasks.push('test', 'codesign', 'mkdmg')
@@ -403,8 +406,4 @@ module.exports = (grunt) ->
     ciTasks.push('publish-nylas-build')
 
   grunt.registerTask('ci', ciTasks)
-
-  defaultTasks = ['download-electron', 'build', 'set-version', 'generate-asar']
-  defaultTasks.push 'mkdmg' if process.platform is 'darwin'
-  defaultTasks.push 'install' unless process.platform is 'linux'
-  grunt.registerTask('default', defaultTasks)
+  grunt.registerTask('default', ['download-electron', 'build'])
