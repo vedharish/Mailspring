@@ -4,7 +4,7 @@ fs = require('fs')
 
 bundleIdentifier = 'com.nylas.nylas-mail'
 
-class LaunchServicesWindows
+class Windows
   available: ->
     true
 
@@ -17,7 +17,7 @@ class LaunchServicesWindows
     remote.dialog.showMessageBox(null, {
       type: 'info',
       buttons: ['Thanks'],
-      message: "Visit Settings to change your default mail client.",
+      message: "Visit Windows Settings to change your mail client.",
       detail: "You'll find Nylas N1 listed as an option in Settings > System > Default Apps > Mail.",
     })
 
@@ -26,13 +26,13 @@ class LaunchServicesWindows
       type: 'info',
       buttons: ['Dismiss', 'Learn More'],
       defaultId: 1,
-      message: "Visit Settings to make Nylas N1 your default mail client.",
+      message: "Visit Windows Settings to make Nylas N1 your mail client.",
       detail: "You'll find Nylas N1 listed as an option in Settings > System > Default Apps > Mail. Thanks for using N1!",
     }, (button) ->
       if button is 'Learn More'
         shell.openExternal('https://support.nylas.com/hc/en-us/articles/229277648')
 
-class LaunchServicesLinux
+class Linux
   available: ->
     true
 
@@ -52,7 +52,7 @@ class LaunchServicesLinux
       return callback(err) if callback and err
       callback(null, null) if callback
 
-class LaunchServicesMac
+class Mac
   constructor: ->
     @secure = false
 
@@ -134,14 +134,14 @@ class LaunchServicesMac
 
 
 if process.platform is 'darwin'
-  module.exports = LaunchServicesMac
+  module.exports = Mac
 else if process.platform is 'linux'
-  module.exports = LaunchServicesLinux
+  module.exports = Linux
 else if process.platform is 'win32'
-  module.exports = LaunchServicesWindows
+  module.exports = Windows
 else
-  module.exports = null
+  module.exports = {}
 
-module.exports.LaunchServicesMac = LaunchServicesMac
-module.exports.LaunchServicesLinux = LaunchServicesLinux
-module.exports.LaunchServicesWindows = LaunchServicesWindows
+module.exports.Mac = Mac
+module.exports.Linux = Linux
+module.exports.Windows = Windows
