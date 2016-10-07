@@ -1,6 +1,7 @@
 ChildProcess = require 'child_process'
 fs = require 'fs-plus'
 path = require 'path'
+os = require 'os'
 
 appFolder = path.resolve(process.execPath, '..')
 rootN1Folder = path.resolve(appFolder, '..')
