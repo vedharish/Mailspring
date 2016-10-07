@@ -51,7 +51,7 @@ createRegistryEntries = (callback) ->
     return callback(err) if err or not data
     importTemplate = data.toString()
     console.log(importTemplate)
-    importContents = importTemplate.replaceAll(/{{PATH_TO_ROOT_FOLDER}}/g, escapeBackticks(rootN1Folder))
+    importContents = importTemplate.replace(/{{PATH_TO_ROOT_FOLDER}}/g, escapeBackticks(rootN1Folder))
     console.log(importContents)
     importTempPath = path.join(os.tmpdir(), "nylas-reg-#{Date.now()}.reg")
     console.log(importTempPath)
