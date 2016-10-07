@@ -52,6 +52,7 @@ createRegistryEntries = (callback) ->
     return callback(err) if err or not data
     importTemplate = data.toString()
     importContents = importTemplate.replace(/{{PATH_TO_ROOT_FOLDER}}/g, escapeBackticks(rootN1Folder))
+    importContents = importContents.replace(/{{PATH_TO_APP_FOLDER}}/g, escapeBackticks(appFolder))
     importTempPath = path.join(os.tmpdir(), "nylas-reg-#{Date.now()}.reg")
     fs.writeFile importTempPath, importContents, (err) =>
       return callback(err) if err

@@ -14,7 +14,9 @@ Windows Registry Editor Version 5.00
 [HKEY_CURRENT_USER\SOFTWARE\Clients\Mail\Nylas]
 @="Nylas"
 "LocalizedString"="@{{PATH_TO_ROOT_FOLDER}}\\Update.exe,-123"
-"DefaultIcon"="@{{PATH_TO_ROOT_FOLDER}}\\Update.exe, 1"
+
+[HKEY_CURRENT_USER\SOFTWARE\Clients\Mail\Nylas\DefaultIcon]
+@="{{PATH_TO_APP_FOLDER}}\\nylas.exe,1"
 
 [HKEY_CURRENT_USER\SOFTWARE\Clients\Mail\Nylas\Capabilities]
 "ApplicationName"="Nylas"
@@ -30,7 +32,9 @@ Windows Registry Editor Version 5.00
 
 [HKEY_CURRENT_USER\SOFTWARE\Clients\Mail\Nylas\Protocols\mailto]
 @="URL:MailTo Protocol"
-"DefaultIcon"="@{{PATH_TO_ROOT_FOLDER}}\\Update.exe,1"
+
+[HKEY_CURRENT_USER\SOFTWARE\Clients\Mail\Nylas\Protocols\mailto\DefaultIcon]
+@="{{PATH_TO_APP_FOLDER}}\\nylas.exe,1"
 
 [HKEY_CURRENT_USER\SOFTWARE\Clients\Mail\Nylas\Protocols\mailto\shell]
 
