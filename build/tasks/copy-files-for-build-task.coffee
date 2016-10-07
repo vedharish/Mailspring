@@ -195,7 +195,7 @@ module.exports = (grunt) ->
           grunt.file.copy(sourcePath, path.resolve(appDir, '..', subDirectory, filename))
 
     if process.platform is 'win32'
-      cp path.join('build', 'resources', 'win', 'MakeDefaultMailClient.exe'), path.join(shellAppDir, 'resources', 'MakeDefaultMailClient.exe')
+      cp path.join('build', 'resources', 'win', 'nylas-mailto.reg'), path.join(shellAppDir, 'resources', 'nylas-mailto.reg')
 
     if process.platform is 'linux'
       cp path.join('build', 'resources', 'linux', 'icons'), path.join(buildDir, 'icons')
