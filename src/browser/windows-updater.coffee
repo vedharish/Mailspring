@@ -41,7 +41,7 @@ createShortcuts = (callback) ->
   spawnUpdate(['--createShortcut', exeName], callback)
 
 createRegistryEntries = (callback) ->
-  escapeBackticks = (str) => str.replace(/\\/g, '\\')
+  escapeBackticks = (str) => str.replace(/\\/g, '\\\\')
 
   if process.env.SystemRoot
     regPath = path.join(process.env.SystemRoot, 'System32', 'reg.exe')
