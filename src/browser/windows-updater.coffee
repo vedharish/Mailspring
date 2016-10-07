@@ -40,7 +40,19 @@ createShortcuts = (callback) ->
   spawnUpdate(['--createShortcut', exeName], callback)
 
 createRegistryEntries = (callback) ->
-  spawn(path.join(appFolder, 'resources', 'MakeDefaultMailClient.exe'), [], callback)
+  escapeBackticks = (str) => str.replace(/\\/g, '\\')
+  template = fs.readFileSync(path.join(appFolder, 'resources', 'nylas-mailto.reg'))
+  console.log(template)
+  regContents = template.replaceAll(/{{PATH_TO_ROOT_FOLDER}}/g, escapeBackticks(rootN1Folder))
+  console.log(regContents)
+  regTempPath = path.join(os.tmpdir(), "nylas-reg-#{Date.now()}.reg")
+  console.log(regTempPath)
+  fs.writeFile regTempPath, regContents, (err) =>
+    console.log('wrote to template file')
+    return callback(err) if err
+    console.log('spawning with args')
+    console.log(['import', escapeBackticks(regTempPath)])
+    spawn('C:\\Windows\\System32\\reg.exe', ['import', escapeBackticks(regTempPath)], callback)
 
 # Update the desktop and start menu shortcuts by using the command line API
 # provided by Squirrel's Update.exe
