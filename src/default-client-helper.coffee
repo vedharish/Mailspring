@@ -24,13 +24,12 @@ class Windows
   registerForURLScheme: (scheme, callback) ->
     remote.dialog.showMessageBox null, {
       type: 'info',
-      buttons: ['Dismiss', 'Learn More'],
+      buttons: ['Learn More'],
       defaultId: 1,
       message: "Visit Windows Settings to make Nylas N1 your mail client.",
       detail: "You'll find Nylas N1 listed as an option in Settings > System > Default Apps > Mail. Thanks for using N1!",
-    }, (button) ->
-      if button is 'Learn More'
-        shell.openExternal('https://support.nylas.com/hc/en-us/articles/229277648')
+    }, ->
+      shell.openExternal('https://support.nylas.com/hc/en-us/articles/229277648')
 
 class Linux
   available: ->
