@@ -47,24 +47,20 @@ createRegistryEntries = (callback) ->
   else
     regPath = 'reg.exe'
 
-  template = null
-  try
-    template = fs.readFileSync(path.join(appFolder, 'resources', 'nylas-mailto.reg')).toString()
-  catch err
-    console.log(err)
-
-  return callback() unless template
-  console.log(template)
-  regContents = template.replaceAll(/{{PATH_TO_ROOT_FOLDER}}/g, escapeBackticks(rootN1Folder))
-  console.log(regContents)
-  regTempPath = path.join(os.tmpdir(), "nylas-reg-#{Date.now()}.reg")
-  console.log(regTempPath)
-  fs.writeFile regTempPath, regContents, (err) =>
-    console.log('wrote to template file')
-    return callback(err) if err
-    console.log('spawning with args')
-    console.log(['import', escapeBackticks(regTempPath)])
-    spawn(regPath, ['import', escapeBackticks(regTempPath)], callback)
+  fs.readFile path.join(appFolder, 'resources', 'nylas-mailto.reg'), (err, data) =>
+    return callback(err) if err or not data
+    importTemplate = data.toString()
+    console.log(importTemplate)
+    importContents = importTemplate.replaceAll(/{{PATH_TO_ROOT_FOLDER}}/g, escapeBackticks(rootN1Folder))
+    console.log(importContents)
+    importTempPath = path.join(os.tmpdir(), "nylas-reg-#{Date.now()}.reg")
+    console.log(importTempPath)
+    fs.writeFile importTempPath, importContents, (err) =>
+      console.log('wrote to template file')
+      return callback(err) if err
+      console.log('spawning with args')
+      console.log(['import', escapeBackticks(importTempPath)])
+      spawn(regPath, ['import', escapeBackticks(importTempPath)], callback)
 
 # Update the desktop and start menu shortcuts by using the command line API
 # provided by Squirrel's Update.exe
