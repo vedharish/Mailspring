@@ -41,7 +41,19 @@ createShortcuts = (callback) ->
 
 createRegistryEntries = (callback) ->
   escapeBackticks = (str) => str.replace(/\\/g, '\\')
-  template = fs.readFileSync(path.join(appFolder, 'resources', 'nylas-mailto.reg'))
+
+  if process.env.SystemRoot
+    regPath = path.join(process.env.SystemRoot, 'System32', 'reg.exe')
+  else
+    regPath = 'reg.exe'
+
+  template = null
+  try
+    template = fs.readFileSync(path.join(appFolder, 'resources', 'nylas-mailto.reg')).toString()
+  catch err
+    console.log(err)
+
+  return callback() unless template
   console.log(template)
   regContents = template.replaceAll(/{{PATH_TO_ROOT_FOLDER}}/g, escapeBackticks(rootN1Folder))
   console.log(regContents)
@@ -52,7 +64,7 @@ createRegistryEntries = (callback) ->
     return callback(err) if err
     console.log('spawning with args')
     console.log(['import', escapeBackticks(regTempPath)])
-    spawn('C:\\Windows\\System32\\reg.exe', ['import', escapeBackticks(regTempPath)], callback)
+    spawn(regPath, ['import', escapeBackticks(regTempPath)], callback)
 
 # Update the desktop and start menu shortcuts by using the command line API
 # provided by Squirrel's Update.exe

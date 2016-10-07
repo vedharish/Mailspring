@@ -86,13 +86,23 @@ const parseCommandLine = (argv) => {
   const urlsToOpen = [];
   const pathsToOpen = [];
 
-  // On Windows and Linux, mailto and file opens are passed as the last argv
-  if (argv.length > 1 && !argv.join(' ').includes('--squirrel')) {
-    const lastArg = argv[argv.length - 1];
-    if (lastArg.startsWith('mailto:') || lastArg.startsWith('nylas:')) {
-      urlsToOpen.push(lastArg);
-    } else if ((lastArg[0] !== '-') && (/[\/|\\]/.test(lastArg))) {
-      pathsToOpen.push(lastArg);
+  // On Windows and Linux, mailto and file opens are passed in argv. Go through
+  // the items and pluck out things that look like mailto:, nylas:, file paths
+  let ignoreNext = false;
+  for (let i = 1; i < argv.length; i ++) {
+    const arg = argv[i];
+    if (ignoreNext) {
+      ignoreNext = false;
+      continue;
+    }
+    if (arg.includes('executed-from') || arg.includes('squirrel')) {
+      ignoreNext = true;
+      continue;
+    }
+    if (arg.startsWith('mailto:') || arg.startsWith('nylas:')) {
+      urlsToOpen.push(arg);
+    } else if ((arg[0] !== '-') && (/[\/|\\]/.test(arg))) {
+      pathsToOpen.push(arg);
     }
   }
 
