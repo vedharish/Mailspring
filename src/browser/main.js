@@ -99,6 +99,9 @@ const parseCommandLine = (argv) => {
       ignoreNext = true;
       continue;
     }
+    if (arg === resourcePath) {
+      continue;
+    }
     if (arg.startsWith('mailto:') || arg.startsWith('nylas:')) {
       urlsToOpen.push(arg);
     } else if ((arg[0] !== '-') && (/[\/|\\]/.test(arg))) {
