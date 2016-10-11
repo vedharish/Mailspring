@@ -6,8 +6,6 @@ platform:
 pull_requests:
   do_not_increment_build_number: true
 
-os: Visual Studio 2015
-
 branches:
   only:
   - master
@@ -28,7 +26,7 @@ build:
 install:
 - ps: Install-Product node $env:NODE_VERSION $env:PLATFORM
 - ps: nuget install secure-file -ExcludeVersion
-- ps: npm config set msvs_version 2015
+- ps: npm config set msvs_version 2012
 
 # We need to extract the encrypted private ssh key to clone the submodule.
 - ps: |
