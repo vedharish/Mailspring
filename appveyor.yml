@@ -6,6 +6,8 @@ platform:
 pull_requests:
   do_not_increment_build_number: true
 
+os: Visual Studio 2015
+
 branches:
   only:
   - master
@@ -48,7 +50,6 @@ environment:
   matrix:
   - NODE_VERSION: 0.12
     PUBLISH_BUILD: true
-    GYP_MSVS_VERSION: 2013
   global:
     CERTIFICATE_FILE: .\src\pro\encrypted_certificates\appveyor\win-nylas-n1.p12
     DECRYPTION_PASSWORD:
