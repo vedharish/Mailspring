@@ -40,23 +40,46 @@ spawnUpdate = (args, callback) ->
 createShortcuts = (callback) ->
   spawnUpdate(['--createShortcut', exeName], callback)
 
-createRegistryEntries = (callback) ->
+createRegistryEntries = ({allowEscalation, registerDefaultIfPossible}, callback) ->
   escapeBackticks = (str) => str.replace(/\\/g, '\\\\')
+
+  isWindows7 = os.release().startsWith('6.1')
+  requiresLocalMachine = isWindows7
+
+  # On Windows 7, we must write to LOCAL_MACHINE and need escalated privileges.
+  # Don't do it at install time - wait for the user to ask N1 to be the default.
+  if requiresLocalMachine and !allowEscalation
+    return callback()
 
   if process.env.SystemRoot
     regPath = path.join(process.env.SystemRoot, 'System32', 'reg.exe')
   else
     regPath = 'reg.exe'
 
-  fs.readFile path.join(appFolder, 'resources', 'nylas-mailto.reg'), (err, data) =>
+  if requiresLocalMachine
+    regPath = '"' + path.join(appFolder, 'resources', 'elevate.cmd') + '" ' + regPath
+
+  fs.readFile path.join(appFolder, 'resources', 'nylas-mailto-registration.reg'), (err, data) =>
     return callback(err) if err or not data
     importTemplate = data.toString()
     importContents = importTemplate.replace(/{{PATH_TO_ROOT_FOLDER}}/g, escapeBackticks(rootN1Folder))
     importContents = importContents.replace(/{{PATH_TO_APP_FOLDER}}/g, escapeBackticks(appFolder))
+    if requiresLocalMachine
+      importContents = importContents.replace(/{{HKEY_ROOT}}/g, 'HKEY_LOCAL_MACHINE')
+    else
+      importContents = importContents.replace(/{{HKEY_ROOT}}/g, 'HKEY_CURRENT_USER')
+
     importTempPath = path.join(os.tmpdir(), "nylas-reg-#{Date.now()}.reg")
     fs.writeFile importTempPath, importContents, (err) =>
       return callback(err) if err
-      spawn(regPath, ['import', escapeBackticks(importTempPath)], callback)
+
+      spawn regPath, ['import', escapeBackticks(importTempPath)], (err) =>
+        if isWindows7 and registerDefaultIfPossible
+          defaultReg = path.join(appFolder, 'resources', 'nylas-mailto-default.reg')
+          spawn regPath, ['import', escapeBackticks(defaultReg)], (err) =>
+            callback(err, true)
+        else
+          callback(err, false)
 
 # Update the desktop and start menu shortcuts by using the command line API
 # provided by Squirrel's Update.exe
@@ -81,31 +104,16 @@ removeShortcuts = (callback) ->
   spawnUpdate(['--removeShortcut', exeName], callback)
 
 exports.spawn = spawnUpdate
+exports.createShortcuts = createShortcuts
+exports.updateShortcuts = updateShortcuts
+exports.removeShortcuts = removeShortcuts
+exports.createRegistryEntries = createRegistryEntries
 
 # Is the Update.exe installed with N1?
-exports.existsSync = ->
-  fs.existsSync(updateDotExe)
+exports.existsSync = -> fs.existsSync(updateDotExe)
 
 # Restart N1 using the version pointed to by the N1.cmd shim
 exports.restartN1 = (app) ->
   app.once 'will-quit', ->
     spawnUpdate(['--processStart', exeName])
   app.quit()
-
-# Handle squirrel events denoted by --squirrel-* command line arguments.
-exports.handleStartupEvent = (app, squirrelCommand) ->
-  switch squirrelCommand
-    when '--squirrel-install'
-      createRegistryEntries -> createShortcuts -> app.quit()
-      true
-    when '--squirrel-updated'
-      createRegistryEntries -> updateShortcuts -> app.quit()
-      true
-    when '--squirrel-uninstall'
-      removeShortcuts -> app.quit()
-      true
-    when '--squirrel-obsolete'
-      app.quit()
-      true
-    else
-      false

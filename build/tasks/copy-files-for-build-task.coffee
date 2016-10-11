@@ -195,7 +195,10 @@ module.exports = (grunt) ->
           grunt.file.copy(sourcePath, path.resolve(appDir, '..', subDirectory, filename))
 
     if process.platform is 'win32'
-      cp path.join('build', 'resources', 'win', 'nylas-mailto.reg'), path.join(shellAppDir, 'resources', 'nylas-mailto.reg')
+      cp path.join('build', 'resources', 'win', 'nylas-mailto-default.reg'), path.join(shellAppDir, 'resources', 'nylas-mailto-default.reg')
+      cp path.join('build', 'resources', 'win', 'nylas-mailto-registration.reg'), path.join(shellAppDir, 'resources', 'nylas-mailto-registration.reg')
+      cp path.join('build', 'resources', 'win', 'elevate.cmd'), path.join(shellAppDir, 'resources', 'elevate.cmd')
+      cp path.join('build', 'resources', 'win', 'elevate.vbs'), path.join(shellAppDir, 'resources', 'elevate.vbs')
 
     if process.platform is 'linux'
       cp path.join('build', 'resources', 'linux', 'icons'), path.join(buildDir, 'icons')

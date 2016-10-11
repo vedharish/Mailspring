@@ -9,9 +9,13 @@ class Windows
     true
 
   isRegisteredForURLScheme: (scheme, callback) ->
+    output = ""
     exec "reg.exe query HKCU\\SOFTWARE\\Microsoft\\Windows\\Roaming\\OpenWith\\UrlAssociations\\#{scheme}\\UserChoice", (err, stdout, stderr) ->
-      return callback(err) if callback and err
-      callback(stdout.includes('Nylas'))
+      output += stdout.toString()
+      exec "reg.exe query HKCU\\SOFTWARE\\Microsoft\\Windows\\Shell\\Associations\\UrlAssociations\\#{scheme}\\UserChoice", (err, stdout, stderr) ->
+        output += stdout.toString()
+        return callback(err) if callback and err
+        callback(stdout.includes('Nylas'))
 
   resetURLScheme: (scheme, callback) ->
     remote.dialog.showMessageBox(null, {
@@ -22,14 +26,32 @@ class Windows
     })
 
   registerForURLScheme: (scheme, callback) ->
-    remote.dialog.showMessageBox null, {
-      type: 'info',
-      buttons: ['Learn More'],
-      defaultId: 1,
-      message: "Visit Windows Settings to make Nylas N1 your mail client.",
-      detail: "You'll find Nylas N1 listed as an option in Settings > System > Default Apps > Mail. Thanks for using N1!",
-    }, ->
-      shell.openExternal('https://support.nylas.com/hc/en-us/articles/229277648')
+    # Ensure that our registry entires are present
+    WindowsUpdater = remote.require('./browser/windows-updater')
+    WindowsUpdater.createRegistryEntries({
+      allowEscalation: true,
+      registerDefaultIfPossible: true,
+    }, (err, didMakeDefault) =>
+      if err
+        remote.dialog.showMessageBox(null, {
+          type: 'error',
+          buttons: ['OK'],
+          message: 'Sorry, an error occurred.',
+          detail: err.message,
+        })
+
+      if not didMakeDefault
+        remote.dialog.showMessageBox null, {
+          type: 'info',
+          buttons: ['Learn More'],
+          defaultId: 1,
+          message: "Visit Windows Settings to make Nylas N1 your mail client.",
+          detail: "You'll find Nylas N1 listed as an option in Settings > System > Default Apps > Mail. Thanks for using N1!",
+        }, ->
+          shell.openExternal('https://support.nylas.com/hc/en-us/articles/229277648')
+
+      callback(null, null)
+    )
 
 class Linux
   available: ->

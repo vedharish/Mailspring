@@ -131,9 +131,40 @@ const handleStartupEventWithSquirrel = () => {
   if (process.platform !== 'win32') {
     return false;
   }
+  const options = {
+    allowEscalation: false,
+    registerDefaultIfPossible: false,
+  };
+
   const WindowsUpdater = require('./windows-updater');
   const squirrelCommand = process.argv[1];
-  return WindowsUpdater.handleStartupEvent(app, squirrelCommand);
+
+  switch (squirrelCommand) {
+    case '--squirrel-install':
+      WindowsUpdater.createRegistryEntries(options, () =>
+        WindowsUpdater.createShortcuts(() =>
+          app.quit()
+        )
+      )
+      return true
+    case '--squirrel-updated':
+      WindowsUpdater.createRegistryEntries(options, () =>
+        WindowsUpdater.updateShortcuts(() =>
+          app.quit()
+        )
+      )
+      return true
+    case '--squirrel-uninstall':
+      WindowsUpdater.removeShortcuts(() =>
+        app.quit()
+      )
+      return true
+    case '--squirrel-obsolete':
+      app.quit()
+      return true
+    default:
+      return false
+  }
 };
 
 const start = () => {
