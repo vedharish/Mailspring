@@ -27,7 +27,7 @@ class Windows
 
   registerForURLScheme: (scheme, callback) ->
     # Ensure that our registry entires are present
-    WindowsUpdater = remote.require('./browser/windows-updater')
+    WindowsUpdater = remote.require('./windows-updater')
     WindowsUpdater.createRegistryEntries({
       allowEscalation: true,
       registerDefaultIfPossible: true,
