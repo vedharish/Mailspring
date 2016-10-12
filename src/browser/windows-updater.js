@@ -29,7 +29,8 @@ function spawn(command, args, callback) {
   let error = null
   spawnedProcess.on('error', (processError) => {
     error = error || processError
-  })
+  });
+
   spawnedProcess.on('close', (code, signal) => {
     if (code !== 0) {
       error = error || new Error(`Command failed: ${signal || code}`);
