@@ -35,7 +35,6 @@ class DefaultMailClientItem extends React.Component {
   }
 
   render() {
-    if (process.platform === "win32") return false;
     return (
       <div className="item">
         <input
