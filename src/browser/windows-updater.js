@@ -75,8 +75,11 @@ function createRegistryEntries({allowEscalation, registerDefaultIfPossible}, cal
     regPath = path.join(process.env.SystemRoot, 'System32', 'reg.exe')
   }
 
+  let spawnPath = regPath;
+  let spawnArgs = [];
   if (requiresLocalMachine) {
-    regPath = '"' + path.join(appFolder, 'resources', 'elevate.cmd') + '" ' + regPath;
+    spawnPath = path.join(appFolder, 'resources', 'elevate.cmd');
+    spawnArgs = [regPath];
   }
 
   fs.readFile(path.join(appFolder, 'resources', 'nylas-mailto-registration.reg'), (err, data) => {
@@ -101,10 +104,10 @@ function createRegistryEntries({allowEscalation, registerDefaultIfPossible}, cal
         return;
       }
 
-      spawn(regPath, ['import', escapeBackticks(importTempPath)], (spawnErr) => {
+      spawn(spawnPath, spawnArgs.concat(['import', escapeBackticks(importTempPath)]), (spawnErr) => {
         if (isWindows7 && registerDefaultIfPossible) {
           const defaultReg = path.join(appFolder, 'resources', 'nylas-mailto-default.reg')
-          spawn(regPath, ['import', escapeBackticks(defaultReg)], (spawnDefaultErr) => {
+          spawn(spawnPath, spawnArgs.concat(['import', escapeBackticks(defaultReg)]), (spawnDefaultErr) => {
             callback(spawnDefaultErr, true);
           });
         } else {
