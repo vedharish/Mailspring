@@ -9,6 +9,7 @@ class Windows
     true
 
   isRegisteredForURLScheme: (scheme, callback) ->
+    throw new Error "isRegisteredForURLScheme is async, provide a callback" unless callback
     output = ""
     exec "reg.exe query HKCU\\SOFTWARE\\Microsoft\\Windows\\Roaming\\OpenWith\\UrlAssociations\\#{scheme}\\UserChoice", (err, stdout, stderr) ->
       output += stdout.toString()
@@ -50,7 +51,7 @@ class Windows
         }, ->
           shell.openExternal('https://support.nylas.com/hc/en-us/articles/229277648')
 
-      callback(null, null)
+      callback(null, null) if callback
     )
 
 class Linux
@@ -60,7 +61,7 @@ class Linux
   isRegisteredForURLScheme: (scheme, callback) ->
     throw new Error "isRegisteredForURLScheme is async, provide a callback" unless callback
     exec "xdg-mime query default x-scheme-handler/#{scheme}", (err, stdout, stderr) ->
-      return callback(err) if callback and err
+      return callback(err) if err
       callback(stdout.trim() is 'nylas.desktop')
 
   resetURLScheme: (scheme, callback) ->
